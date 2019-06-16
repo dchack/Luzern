@@ -18,14 +18,15 @@ import java.util.List;
 public class Test {
 
     public static void main(String[] args) throws FileNotFoundException {
-        String file = "/Users/dongchao/dc_file/github/Luzern/luzern-spring-test/src/main/java/com/github/hopedc/luzern/test/controller/UserController.java";
+        String file1 = "/Users/dongchao/dc_file/github/Luzern/luzern-spring-test/src/main/java/com/github/hopedc/luzern/test/controller/UserController.java";
+        String file2 = "/Users/dongchao/dc_file/github/Luzern/luzern-spring-test/src/main/java/com/github/hopedc/luzern/test/vo/User.java";
 //        FileInputStream in = new FileInputStream(file);
 //        CompilationUnit cu = JavaParser.parse(in);
 //        TypeDeclaration typeDeclaration = cu.getTypes().get(0);
 //        System.out.printf(typeDeclaration.getComment().get().getContent());
         List<String> files = new ArrayList();
-        files.add(file);
-
+        files.add(file1);
+        files.add(file2);
         SpringResolver springResolver = new SpringResolver();
         springResolver.resolve(files);
 //        typeDeclaration.getme

@@ -59,6 +59,28 @@ public class SpringResolver implements Resolver {
     @Override
     public List<ApiModule> resolve(List<String> files) {
 
+        //先缓存类文件信息
+        for (String file : files) {
+            try (FileInputStream in = new FileInputStream(file)) {
+                CompilationUnit cu = JavaParser.parse(in);
+                if (cu.getTypes().size() <= 0) {
+                    continue;
+                }
+
+                TypeDeclaration typeDeclaration = cu.getTypes().get(0);
+                final Class<?> moduleType = Class.forName(cu.getPackageDeclaration().get().getNameAsString() + "." + typeDeclaration.getNameAsString());
+                IgnoreApi ignoreApi = moduleType.getAnnotation(IgnoreApi.class);
+                if (ignoreApi == null) {
+                    //缓存"包名+类名"跟对应的.java文件的位置映射关系
+                    ClassMapperUtils.put(moduleType.getName(), file);
+                    //缓存"类名"跟对应的.java文件的位置映射关系
+                    ClassMapperUtils.put(moduleType.getSimpleName(), file);
+                }
+            } catch (Exception e) {
+                log.warn("读取文件失败:{}, {}", file, e.getMessage());
+            }
+        }
+
         List<ApiModule> apiModules = new LinkedList<>();
 
         for (String file : files) {
@@ -163,7 +185,6 @@ public class SpringResolver implements Resolver {
 
 
         List<String> comments = CommentUtils.asCommentList(StringUtils.defaultIfBlank(m.getComment().get().getContent(), ""));
-        List<DocTag> docTagList = new ArrayList<>(comments.size());
         Map<String, String> prarmMap = new HashMap<>();
         for (int i = 0; i < comments.size(); i++) {
             String c = comments.get(i);
@@ -210,38 +231,33 @@ public class SpringResolver implements Resolver {
                 }
             }else{
 
-                Map<String, java.lang.reflect.Parameter> parameterMap = Arrays.stream(method.getParameters()).collect(Collectors.toMap(java.lang.reflect.Parameter::getName, p->p));
-                Class paramerterClass = parameter.getType().;
-                PropertyDescriptor[] propertyDescriptors = PropertyUtils.getPropertyDescriptors(paramerterClass);
-                Map<String, String> commentMap = analysisFieldComments(paramerterClass);
                 List<ParamInfo> properties = new ArrayList<>();
                 paramInfo.setParamType("object");
                 paramInfo.setParamDesc(prarmMap.get(parameter.getNameAsString()));
                 paramInfo.setParamName(parameter.getNameAsString());
-                for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
-                    //排除掉class属性
-                    if ("class".equals(propertyDescriptor.getName())) {
-                        continue;
-                    }
 
-                    java.lang.reflect.Parameter reflectParameter = parameterMap.get(propertyDescriptor.getName());
-
-//                    FieldInfo field = new FieldInfo();
-//                    String comment = commentMap.get(propertyDescriptor.getName());
-//                    paramInfo.setParamType(propertyDescriptor.getPropertyType().getSimpleName());
+                for(java.lang.reflect.Parameter parameter1 : method.getParameters()){
+                    Class paramClass = parameter1.getType();
+                    Map<String, String> commentMap = analysisFieldComments(paramClass);
+//                    String comment = commentMap.get(parameter1.getName());
 //                    paramInfo.setParamDesc(comment);
-//                    paramInfo.setParamName(propertyDescriptor.getName());
-//                    paramInfo.setRequire(true);
-
-                    ParamInfo propertie = new ParamInfo();
-                    propertie.setParamName(propertyDescriptor.getName());
-                    propertie.setParamDesc(propertyDescriptor.getShortDescription());
-                    propertie.setParamType(propertyDescriptor.getPropertyType().getSimpleName());
-                    // todo
-                    propertie.setRequire(true);
-                    properties.add(propertie);
+                    paramInfo.setParamName(parameter1.getName());
+                    PropertyDescriptor[] propertyDescriptors = PropertyUtils.getPropertyDescriptors(paramClass);
+                    for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
+                        //排除掉class属性
+                        if ("class".equals(propertyDescriptor.getName())) {
+                            continue;
+                        }
+                        ParamInfo propertie = new ParamInfo();
+                        propertie.setParamName(propertyDescriptor.getName());
+                        propertie.setParamDesc(commentMap.get(propertyDescriptor.getName()));
+                        propertie.setParamType(propertyDescriptor.getPropertyType().getSimpleName());
+                        // todo
+                        propertie.setRequire(true);
+                        properties.add(propertie);
+                    }
+                    paramInfo.setProperties(properties);
                 }
-                paramInfo.setProperties(properties);
             }
             paramInfoList.add(paramInfo);
         }
