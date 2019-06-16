@@ -1,4 +1,4 @@
-## luzern讨论QQ群:820854691
+## luzern
 
 # ❦ luzern 快速文档构建框架
 
