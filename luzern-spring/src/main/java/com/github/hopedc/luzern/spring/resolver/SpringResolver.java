@@ -142,11 +142,7 @@ public class SpringResolver implements Resolver {
                         buildParams(method, m, apiAction);
 
                         // 组装出参
-
-//                        java.lang.reflect.Parameter[] parameters = method.getParameters();
-//                        for (java.lang.reflect.Parameter parameter: parameters) {
-//                            Class clazz = parameter.getType();
-//                        }
+                        buildReturnParams(method, apiAction);
 
 
                         apiAction.setMethod(method);
@@ -168,6 +164,46 @@ public class SpringResolver implements Resolver {
 
         }
         return apiModules;
+    }
+
+    private void buildReturnParams(Method method, SpringApiAction apiAction) {
+        Class returnClass = method.getReturnType();
+        Map<String, String> commentMap = analysisFieldComments(returnClass);
+        List<ParamInfo> returnParam = new ArrayList<>();
+        if(returnClass.isPrimitive()){
+            ParamInfo paramInfo = new ParamInfo();
+            paramInfo.setParamName(returnClass.getName());
+            //todo
+            paramInfo.setParamDesc("");
+            paramInfo.setRequire(true);
+            paramInfo.setParamType(returnClass.getTypeName());
+            returnParam.add(paramInfo);
+        }else{
+            PropertyDescriptor[] propertyDescriptors = PropertyUtils.getPropertyDescriptors(returnClass);
+            ParamInfo paramInfo = new ParamInfo();
+            List<ParamInfo> properties = new ArrayList<>();
+            paramInfo.setParamType("object");
+            // todo
+//            paramInfo.setParamDesc(prarmMap.get(parameter.getNameAsString()));
+//            paramInfo.setParamName(parameter.getNameAsString());
+            for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
+                //排除掉class属性
+                if ("class".equals(propertyDescriptor.getName())) {
+                    continue;
+                }
+                ParamInfo propertie = new ParamInfo();
+                propertie.setParamName(propertyDescriptor.getName());
+                propertie.setParamDesc(commentMap.get(propertyDescriptor.getName()));
+                propertie.setParamType(propertyDescriptor.getPropertyType().getSimpleName());
+                // todo
+                propertie.setRequire(true);
+                properties.add(propertie);
+            }
+            paramInfo.setProperties(properties);
+            returnParam.add(paramInfo);
+        }
+
+        apiAction.setReturnParam(returnParam);
     }
 
     private String[] getPrefixPathsStrings(Class<?> moduleType) {

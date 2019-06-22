@@ -31,7 +31,7 @@ public class SpringApiAction extends ApiAction {
     /**
      * 返回对象
      */
-    private ObjectInfo returnObj;
+    private List<ParamInfo> returnParam;
 
     /**
      * 出参

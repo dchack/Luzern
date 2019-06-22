@@ -129,7 +129,7 @@ public class SpringWebFramework implements Framework {
             objectInfo.setType(returnClassz);
             objectInfo.setFieldInfos(fields);
             objectInfo.setComment(text);
-            saa.setReturnObj(objectInfo);
+//            saa.setReturnObj(objectInfo);
         }
 
         MethodDeclaration methodDeclaration = apiAction.getMethodDeclaration();
