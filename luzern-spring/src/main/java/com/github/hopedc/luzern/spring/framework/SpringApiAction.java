@@ -2,9 +2,6 @@ package com.github.hopedc.luzern.spring.framework;
 
 import lombok.Data;
 import com.github.hopedc.luzern.core.model.ApiAction;
-import com.github.hopedc.luzern.core.model.ObjectInfo;
-
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,14 +26,9 @@ public class SpringApiAction extends ApiAction {
     private List<ParamInfo> param;
 
     /**
-     * 返回对象
-     */
-    private List<ParamInfo> returnParam;
-
-    /**
      * 出参
      */
-    private List<ParamInfo> respParam = new ArrayList<>(0);
+    private List<ParamInfo> returnParam;
 
     /**
      * 返回描述

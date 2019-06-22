@@ -19,5 +19,9 @@ public abstract class DocTag<T> {
         this.tagName = tagName;
     }
 
+    public String getTagName(){
+        return tagName;
+    }
+
     public abstract T getValues();
 }

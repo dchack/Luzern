@@ -9,6 +9,7 @@ import com.github.hopedc.luzern.core.resolver.javaparser.JavaParserDocTagResolve
 import com.github.hopedc.luzern.core.resolver.javaparser.converter.JavaParserTagConverter;
 import com.github.hopedc.luzern.core.resolver.javaparser.converter.JavaParserTagConverterRegistrar;
 import com.github.hopedc.luzern.core.resolver.javaparser.converter.ParamTagConverter;
+import com.github.hopedc.luzern.core.resolver.javaparser.converter.TagNamesConstants;
 import com.github.hopedc.luzern.core.tag.DocTag;
 import com.github.hopedc.luzern.core.utils.ClassMapperUtils;
 import com.github.hopedc.luzern.core.utils.CommentUtils;
@@ -31,6 +32,7 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Controller;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -99,6 +101,12 @@ public class SpringResolver implements Resolver {
                     continue;
                 }
 
+                if(moduleType.getAnnotation(Controller.class) == null
+                        && moduleType.getAnnotation(RestController.class) == null){
+                    continue;
+                }
+
+
                 final ApiModule apiModule = new ApiModule();
                 apiModule.setType(moduleType);
 
@@ -125,8 +133,7 @@ public class SpringResolver implements Resolver {
                             return;
                         }
 
-                        List<String> comments = CommentUtils.asCommentList(StringUtils.defaultIfBlank(m.getComment().get().getContent(), ""));
-                        List<DocTag> docTagList = new ArrayList<>(comments.size());
+                        Map<String, DocTag> docTagMap = getTagMap(m);
 
                         SpringApiAction apiAction = new SpringApiAction();
                         if (m.getComment().isPresent()) {
@@ -139,7 +146,7 @@ public class SpringResolver implements Resolver {
                         buildPathMapping(method, apiAction, prefixPaths);
 
                         // 组装入参
-                        buildParams(method, m, apiAction);
+                        buildParams(method, m, docTagMap, apiAction);
 
                         // 组装出参
                         buildReturnParams(method, apiAction);
@@ -164,6 +171,28 @@ public class SpringResolver implements Resolver {
 
         }
         return apiModules;
+    }
+
+    private Map<String, DocTag> getTagMap(MethodDeclaration m) {
+        List<String> comments = CommentUtils.asCommentList(StringUtils.defaultIfBlank(m.getComment().get().getContent(), ""));
+
+        Map<String, DocTag> docTagMap = new HashMap<>();
+
+        for (int i = 0; i < comments.size(); i++) {
+            String c = comments.get(i);
+            String tagType = CommentUtils.getTagType(c);
+            if (StringUtils.isBlank(tagType)) {
+                continue;
+            }
+            JavaParserTagConverter converter = JavaParserTagConverterRegistrar.getInstance().getConverter(tagType);
+            DocTag docTag = converter.converter(c);
+            if (docTag != null) {
+                docTagMap.put(docTag.getTagName(), docTag);
+            } else {
+                log.warn("识别不了:{}", c);
+            }
+        }
+        return docTagMap;
     }
 
     private void buildReturnParams(Method method, SpringApiAction apiAction) {
@@ -214,26 +243,16 @@ public class SpringResolver implements Resolver {
     }
 
 
-    private void buildParams(Method method, MethodDeclaration m, SpringApiAction apiAction) {
+    private void buildParams(Method method, MethodDeclaration m, Map<String, DocTag> docTagMap, SpringApiAction apiAction) {
         List<ParamInfo> paramInfoList = new ArrayList<>();
         NodeList<Parameter> nodeList = m.getParameters();
-        java.lang.reflect.Parameter[] parameters = method.getParameters();
-
-
-        List<String> comments = CommentUtils.asCommentList(StringUtils.defaultIfBlank(m.getComment().get().getContent(), ""));
         Map<String, String> prarmMap = new HashMap<>();
-        for (int i = 0; i < comments.size(); i++) {
-            String c = comments.get(i);
-            String tagType = CommentUtils.getTagType(c);
-            if (StringUtils.isBlank(tagType)) {
-                continue;
-            }
-            if(tagType.startsWith("@param")){
-                com.github.hopedc.luzern.tag.ParamTagImpl paramTag = (com.github.hopedc.luzern.tag.ParamTagImpl) new ParamTagConverter().converter(c);
+        for(Map.Entry entry : docTagMap.entrySet()){
+            if(TagNamesConstants.paramTag.equals(entry.getKey())){
+                com.github.hopedc.luzern.tag.ParamTagImpl paramTag = (com.github.hopedc.luzern.tag.ParamTagImpl)entry.getValue();
                 prarmMap.put(paramTag.getParamName(), paramTag.getParamDesc());
             }
         }
-
         for(Parameter parameter : nodeList){
             ParamInfo paramInfo = new ParamInfo();
             if(parameter.getType().isPrimitiveType()){
