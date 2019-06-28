@@ -246,19 +246,13 @@ public class SpringResolver implements Resolver {
     private void buildParams(Method method, MethodDeclaration m, Map<String, DocTag> docTagMap, SpringApiAction apiAction) {
         List<ParamInfo> paramInfoList = new ArrayList<>();
         NodeList<Parameter> nodeList = m.getParameters();
-        Map<String, String> prarmMap = new HashMap<>();
-        for(Map.Entry entry : docTagMap.entrySet()){
-            if(TagNamesConstants.paramTag.equals(entry.getKey())){
-                com.github.hopedc.luzern.tag.ParamTagImpl paramTag = (com.github.hopedc.luzern.tag.ParamTagImpl)entry.getValue();
-                prarmMap.put(paramTag.getParamName(), paramTag.getParamDesc());
-            }
-        }
+        Map<String, String> paramMap = getParamTagDescMap(docTagMap);
         for(Parameter parameter : nodeList){
             ParamInfo paramInfo = new ParamInfo();
             if(parameter.getType().isPrimitiveType()){
                 paramInfo.setParamType(parameter.getType().toString());
                 paramInfo.setParamName(parameter.getName().toString());
-                paramInfo.setParamDesc(prarmMap.get(parameter.getName()));
+                paramInfo.setParamDesc(paramMap.get(parameter.getName()));
                 if(org.apache.commons.collections.CollectionUtils.isNotEmpty(parameter.getAnnotations())){
                     for(AnnotationExpr annotationExpr : parameter.getAnnotations()){
                         if(annotationExpr.getNameAsString().equals("NotNull")){
@@ -288,7 +282,7 @@ public class SpringResolver implements Resolver {
 
                 List<ParamInfo> properties = new ArrayList<>();
                 paramInfo.setParamType("object");
-                paramInfo.setParamDesc(prarmMap.get(parameter.getNameAsString()));
+                paramInfo.setParamDesc(paramMap.get(parameter.getNameAsString()));
                 paramInfo.setParamName(parameter.getNameAsString());
 
                 for(java.lang.reflect.Parameter parameter1 : method.getParameters()){
@@ -317,6 +311,17 @@ public class SpringResolver implements Resolver {
             paramInfoList.add(paramInfo);
         }
         apiAction.setParam(paramInfoList);
+    }
+
+    private Map<String, String> getParamTagDescMap(Map<String, DocTag> docTagMap) {
+        Map<String, String> prarmMap = new HashMap<>();
+        for(Map.Entry entry : docTagMap.entrySet()){
+            if(TagNamesConstants.paramTag.equals(entry.getKey())){
+                com.github.hopedc.luzern.tag.ParamTagImpl paramTag = (com.github.hopedc.luzern.tag.ParamTagImpl)entry.getValue();
+                prarmMap.put(paramTag.getParamName(), paramTag.getParamDesc());
+            }
+        }
+        return prarmMap;
     }
 
     private void buildPathMapping(Method method, SpringApiAction apiAction, String[] prefixPaths) {
