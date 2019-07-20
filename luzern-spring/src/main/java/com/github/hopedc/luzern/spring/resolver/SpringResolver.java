@@ -11,6 +11,8 @@ import com.github.hopedc.luzern.core.resolver.javaparser.converter.JavaParserTag
 import com.github.hopedc.luzern.core.resolver.javaparser.converter.ParamTagConverter;
 import com.github.hopedc.luzern.core.resolver.javaparser.converter.TagNamesConstants;
 import com.github.hopedc.luzern.core.tag.DocTag;
+import com.github.hopedc.luzern.core.tag.RespTagImpl;
+import com.github.hopedc.luzern.core.tag.ReturnTagImpl;
 import com.github.hopedc.luzern.core.utils.ClassMapperUtils;
 import com.github.hopedc.luzern.core.utils.CommentUtils;
 import com.github.hopedc.luzern.core.utils.Constant;
@@ -83,6 +85,20 @@ public class SpringResolver implements Resolver {
             }
         }
 
+        Map<String, TypeDeclaration> typeDeclarationMap = new HashMap<>();
+        for(String file : files){
+            try (FileInputStream in = new FileInputStream(file)) {
+                CompilationUnit cu = JavaParser.parse(in);
+                // 类
+                TypeDeclaration typeDeclaration = cu.getTypes().get(0);
+                String name = cu.getPackageDeclaration().get().getName().asString() + "."+ typeDeclaration.getName();
+                typeDeclarationMap.put(name, typeDeclaration);
+            }catch (Exception e){
+
+            }
+        }
+
+
         List<ApiModule> apiModules = new LinkedList<>();
 
         for (String file : files) {
@@ -149,7 +165,7 @@ public class SpringResolver implements Resolver {
                         buildParams(method, m, docTagMap, apiAction);
 
                         // 组装出参
-                        buildReturnParams(method, apiAction);
+                        buildReturnParams(method, apiAction, docTagMap, typeDeclarationMap);
 
 
                         apiAction.setMethod(method);
@@ -195,8 +211,9 @@ public class SpringResolver implements Resolver {
         return docTagMap;
     }
 
-    private void buildReturnParams(Method method, SpringApiAction apiAction) {
+    private void buildReturnParams(Method method, SpringApiAction apiAction, Map<String, DocTag> docTagMap, Map<String, TypeDeclaration> map) {
         Class returnClass = method.getReturnType();
+        TypeDeclaration typeDeclaration = map.get(returnClass.getName());
         Map<String, String> commentMap = analysisFieldComments(returnClass);
         List<ParamInfo> returnParam = new ArrayList<>();
         if(returnClass.isPrimitive()){
@@ -212,9 +229,10 @@ public class SpringResolver implements Resolver {
             ParamInfo paramInfo = new ParamInfo();
             List<ParamInfo> properties = new ArrayList<>();
             paramInfo.setParamType("object");
-            // todo
-//            paramInfo.setParamDesc(prarmMap.get(parameter.getNameAsString()));
-//            paramInfo.setParamName(parameter.getNameAsString());
+            List<String> comments = CommentUtils.asCommentList(StringUtils.defaultIfBlank(typeDeclaration.getComment().get().getContent(), ""));
+            ReturnTagImpl respTag = (ReturnTagImpl) docTagMap.get(TagNamesConstants.returnTag);
+            paramInfo.setParamDesc(comments.get(0));
+            paramInfo.setParamName(respTag!=null?respTag.getValues():comments.get(0));
             for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
                 //排除掉class属性
                 if ("class".equals(propertyDescriptor.getName())) {

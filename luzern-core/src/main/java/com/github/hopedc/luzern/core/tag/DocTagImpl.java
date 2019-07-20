@@ -7,7 +7,7 @@ package com.github.hopedc.luzern.core.tag;
  */
 public class DocTagImpl extends DocTag<String> {
 
-    private String value;
+    public String value;
 
     public DocTagImpl(String tagName, String value) {
         super(tagName);
