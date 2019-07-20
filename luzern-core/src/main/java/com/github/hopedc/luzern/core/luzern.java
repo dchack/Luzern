@@ -85,6 +85,7 @@ public class luzern {
         for (Framework framework : frameworks) {
             apiModules = framework.extend(apiModules);
         }
+
         return new ApiDoc(apiModules);
     }
 
