@@ -15,5 +15,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Import(luzernConfiguration.class)
 @EnableConfigurationProperties(luzernProperties.class)
-public @interface Enableluzern {
+public @interface EnableLuzern {
 }
