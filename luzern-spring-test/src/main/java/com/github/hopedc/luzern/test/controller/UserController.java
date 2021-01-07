@@ -57,4 +57,8 @@ public class UserController {
         user.setId(UUID.randomUUID().toString());
         return user;
     }
+
+    public static void main(String[] args) {
+
+    }
 }

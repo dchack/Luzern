@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by hopedc on 2018/6/22.
+ *
+ * @author hopedc
+ * @date 2018/6/22
  */
 @Data
 public class ApiDoc {

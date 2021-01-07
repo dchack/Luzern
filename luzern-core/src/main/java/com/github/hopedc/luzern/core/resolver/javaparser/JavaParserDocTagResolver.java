@@ -47,6 +47,7 @@ public class JavaParserDocTagResolver implements DocTagResolver {
         for (String file : files) {
             try (FileInputStream in = new FileInputStream(file)) {
                 CompilationUnit cu = JavaParser.parse(in);
+                JavaParser.
                 if (cu.getTypes().size() <= 0) {
                     continue;
                 }
