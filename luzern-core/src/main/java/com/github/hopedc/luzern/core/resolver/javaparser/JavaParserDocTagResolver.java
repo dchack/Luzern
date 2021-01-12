@@ -1,10 +1,9 @@
 package com.github.hopedc.luzern.core.resolver.javaparser;
 
-import com.github.hopedc.luzern.core.framework.Framework;
 import com.github.hopedc.luzern.core.model.ApiAction;
 import com.github.hopedc.luzern.core.model.ApiModule;
-import com.github.hopedc.luzern.core.resolver.DocTagResolver;
 import com.github.hopedc.luzern.core.resolver.IgnoreApi;
+import com.github.hopedc.luzern.core.resolver.Resolver;
 import com.github.hopedc.luzern.core.resolver.javaparser.converter.JavaParserTagConverter;
 import com.github.hopedc.luzern.core.resolver.javaparser.converter.JavaParserTagConverterRegistrar;
 import com.github.hopedc.luzern.core.tag.DocTag;
@@ -12,11 +11,9 @@ import com.github.hopedc.luzern.core.utils.ClassMapperUtils;
 import com.github.hopedc.luzern.core.utils.CommentUtils;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.TypeDeclaration;
-import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import org.apache.commons.lang3.StringUtils;
@@ -36,7 +33,7 @@ import java.util.List;
  * @author hopedc
  * @date 2017/4/1 0001
  */
-public class JavaParserDocTagResolver implements DocTagResolver {
+public class JavaParserDocTagResolver implements Resolver {
 
     private Logger log = LoggerFactory.getLogger(JavaParserDocTagResolver.class);
 
@@ -47,7 +44,6 @@ public class JavaParserDocTagResolver implements DocTagResolver {
         for (String file : files) {
             try (FileInputStream in = new FileInputStream(file)) {
                 CompilationUnit cu = JavaParser.parse(in);
-                JavaParser.
                 if (cu.getTypes().size() <= 0) {
                     continue;
                 }

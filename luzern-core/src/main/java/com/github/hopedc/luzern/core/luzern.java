@@ -1,5 +1,6 @@
 package com.github.hopedc.luzern.core;
 
+import com.github.hopedc.luzern.core.resolver.Resolver;
 import lombok.Setter;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -8,17 +9,13 @@ import com.github.hopedc.luzern.core.format.Format;
 import com.github.hopedc.luzern.core.framework.Framework;
 import com.github.hopedc.luzern.core.model.ApiDoc;
 import com.github.hopedc.luzern.core.model.ApiModule;
-import com.github.hopedc.luzern.core.resolver.DocTagResolver;
 import com.github.hopedc.luzern.core.resolver.javaparser.JavaParserDocTagResolver;
 import com.github.hopedc.luzern.core.utils.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * luzern主入口,核心处理从这里开始
@@ -30,7 +27,7 @@ public class luzern {
 
     private static final String CHARSET = "utf-8";
 
-    private Logger log = LoggerFactory.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     /**
      * 源码路径
@@ -48,10 +45,10 @@ public class luzern {
      * <p>
      * 备注:基于sun doc的解析方式已经废弃,若需要请参考v1.0之前的版本
      *
-     * @see com.github.hopedc.luzern.core.resolver.javaparser.JavaParserDocTagResolver
+     * @see JavaParserDocTagResolver
      */
     @Setter
-    private DocTagResolver docTagResolver = new JavaParserDocTagResolver();
+    private Resolver docTagResolver = new JavaParserDocTagResolver();
 
     /**
      * 构建luzern对象
@@ -59,7 +56,7 @@ public class luzern {
      * @param srcPath 源码路径
      */
     public luzern(String srcPath, Framework framework) {
-        this(Arrays.asList(srcPath), framework);
+        this(Collections.singletonList(srcPath), framework);
     }
 
     /**

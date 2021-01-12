@@ -4,7 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by hopedc on 2017/4/3 0003.
+ *
+ * @author hopedc
+ * @date 2017/4/3 0003
  */
 public class ClassMapperUtils {
 
